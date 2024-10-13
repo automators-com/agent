@@ -10,4 +10,5 @@ dependencies = [
     "pytest-playwright>=0.5.2",
     "openai>=1.51.2",
     "python-dotenv>=1.0.1",
+    "rich>=13.9.2",
 ]

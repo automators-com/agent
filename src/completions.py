@@ -1,35 +1,81 @@
+import json
 import os
 from openai import OpenAI
-from dotenv import load_dotenv
-
-load_dotenv()
+import src.tools as tools
+from src.logging import logger
 
 client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
 
-def generate_test_code(page: str, prompt: str, url: str):
-    chat_completion = client.chat.completions.create(
-        messages=[
-            {
-                "role": "assistant",
-                "content": "You are a useful testing agent. Your job is to analyse webpage content and create tests based on some user provided scope. You should only ever return the test code.",
-            },
-            {
-                "role": "assistant",
-                "content": "Only return valid test code which can be written to a single code file. Avoid imports and other code which would not be valid in a single file.",
-            },
-            {
-                "role": "user",
-                "content": f"Consider the following webpage content: {page} for {url}",
-            },
-            {
-                "role": "user",
-                "content": f"Consider the following scope: {prompt}",
-            },
-        ],
-        model=os.environ.get("OPENAI_MODEL"),
+def agent_create_tests(prompt: str, url: str):
+    agent_working = True
+    messages = []
+    messages.append(
+        {
+            "role": "assistant",
+            "content": "You are a useful test code writing agent. Use the supplied tools to create passing tests for the user.",
+        },
+    )
+    messages.append(
+        {
+            "role": "assistant",
+            "content": "If tests are not passing, consider using the tools to debug the issue. You can overwrite any code in the out folder using the relevant tools. Use links found on the webpage to determine if navigation to other pages are required. You can use the extract_webpage_content tool in place of navigation. Do not make assumptions about the app structure unless there are links to support it.",
+        },
+    )
+    messages.append(
+        {
+            "role": "user",
+            "content": f"Our webpage entry point is: {url}",
+        },
+    )
+    messages.append(
+        {
+            "role": "user",
+            "content": f"Consider the following requirements: {prompt}",
+        },
     )
 
-    return chat_completion
+    logger.info(
+        "Making initial agent request. Set log level to DEBUG to see the full request."
+    )
+    logger.debug(json.dumps(messages, indent=2))
+
+    response = client.chat.completions.create(
+        model=os.environ.get("OPENAI_MODEL"),
+        messages=messages,
+        tools=tools.tools,
+    )
+
+    logger.info(f"AGENT: {response.to_json()}")
+    tool_calls = response.choices[0].message.tool_calls
+
+    while agent_working:
+        if tool_calls == [] or tool_calls is None:
+            logger.info("No tool calls returned. Exiting.")
+            agent_working = False
+            break
+
+        print(tool_calls)
+        for tool_call in tool_calls:
+            name = tool_call.function.name
+            kwargs = json.loads(tool_call.function.arguments)
+            logger.info(f"Calling tool: {name} with arguments: {kwargs}")
+
+            function_call_output = getattr(tools, name)(**kwargs)
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": f"Called tool: {name} with arguments: {kwargs}. The function call output was: {function_call_output} ",
+                }
+            )
+
+            logger.debug(json.dumps(messages, indent=2))
+            response = client.chat.completions.create(
+                model=os.environ.get("OPENAI_MODEL"),
+                messages=messages,
+                tools=tools.tools,
+            )
+            logger.info(f"AGENT: {response.to_json()}")
+            tool_calls = response.choices[0].message.tool_calls
