@@ -22,6 +22,17 @@ Install playwright:
 .venv/bin/playwright install chromium
 ```
 
+## Environment Variables
+
+Create a `.env` file in the root of the project with the following content:
+
+```bash
+OPENAI_API_KEY=""
+OPENAI_MODEL="gpt-4o"
+HEADLESS=true
+LOG_LEVEL="INFO"
+```
+
 ## Usage
 
 Run the agent:
