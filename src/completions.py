@@ -15,13 +15,13 @@ def agent_create_tests(prompt: str, url: str):
     messages.append(
         {
             "role": "assistant",
-            "content": "You are a useful test code writing agent. Use the supplied tools to create passing tests for the user.",
+            "content": "You are a useful test code writing agent. Use the supplied tools to create passing tests for the user. You are not able to ask the user for additional input after the initial prompt.",
         },
     )
     messages.append(
         {
             "role": "assistant",
-            "content": "If tests are not passing, consider using the tools to debug the issue. You can overwrite any code in the out folder using the relevant tools. Use links found on the webpage to determine if navigation to other pages are required. You can use the extract_webpage_content tool in place of navigation. Do not make assumptions about the app structure unless there are links to support it.",
+            "content": "If tests are not passing, consider using the tools to debug the issue. You can overwrite any code in the out folder using the relevant tools. Use links found on the webpage to determine if navigation to other pages are required. You can use the extract_webpage_content tool in place of navigation. Do not make assumptions about the app structure or redirects unless there are clear links to support it.",
         },
     )
     messages.append(
@@ -46,6 +46,7 @@ def agent_create_tests(prompt: str, url: str):
         model=os.environ.get("OPENAI_MODEL"),
         messages=messages,
         tools=tools.tools,
+        temperature=0.5,
     )
 
     logger.info(f"AGENT: {response.to_json()}")
@@ -57,7 +58,6 @@ def agent_create_tests(prompt: str, url: str):
             agent_working = False
             break
 
-        print(tool_calls)
         for tool_call in tool_calls:
             name = tool_call.function.name
             kwargs = json.loads(tool_call.function.arguments)
@@ -76,6 +76,7 @@ def agent_create_tests(prompt: str, url: str):
                 model=os.environ.get("OPENAI_MODEL"),
                 messages=messages,
                 tools=tools.tools,
+                temperature=0.5,
             )
             logger.info(f"AGENT: {response.to_json()}")
             tool_calls = response.choices[0].message.tool_calls

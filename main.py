@@ -7,11 +7,10 @@ logger.info("Loading environment variables")
 load_dotenv()
 
 entry_point = "https://dev.datamaker.app"
+prompt = "Please write tests for me using Playwright and Python. I want you to test the signup flow and then the sign-in flow using the same user. Start with testuser123@automators.com as your user. Randomize the username on every test run. Expect a redirect /dashboard after sign-in."
 
 
 def main():
-    # create a prompt for the agent
-    prompt = "Write some headless python playwright tests for the user signup flow."
     # use the agent to create tests
     agent_create_tests(prompt, entry_point)
 
