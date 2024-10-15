@@ -5,10 +5,15 @@ from agent.logging import logger
 # create a folder to store the generated code
 TEST_DIR = Path("tests")
 
-if not TEST_DIR.exists():
-    TEST_DIR.mkdir()
-    # initialise the folder as a git repo
-    os.system(f"cd {TEST_DIR} && git init")
+
+def setup():
+    if not TEST_DIR.exists():
+        TEST_DIR.mkdir()
+        # initialise the folder as a git repo
+        os.system(f"cd {TEST_DIR} && git init")
+
+    # install playwright browsers
+    os.popen("playwright install")
 
 
 def clean_dir():

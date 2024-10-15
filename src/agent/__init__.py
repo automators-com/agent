@@ -2,11 +2,13 @@ import typer
 from typing import Optional
 from agent.completions import agent
 from typing_extensions import Annotated
-from agent.config import clean_dir
+from agent.config import clean_dir, setup
 
 
 __app_name__ = "agent"
 __version__ = "0.1.0"
+
+setup()
 
 
 def version_callback(value: bool):
