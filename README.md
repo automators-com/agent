@@ -19,7 +19,7 @@ uv sync --all-extras --dev
 Install playwright:
     
 ```bash
-.venv/bin/playwright install chromium
+playwright install chromium
 ```
 
 ## Environment Variables
@@ -38,5 +38,5 @@ LOG_LEVEL="INFO"
 Run the agent:
 
 ```bash
-uv run main.py
+uv run agent
 ```
