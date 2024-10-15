@@ -162,5 +162,5 @@ cython_debug/
 #.idea/
 
 .ruff_cache/
-out/
-out/*
+tests/
+tests/*

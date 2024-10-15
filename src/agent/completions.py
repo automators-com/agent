@@ -1,15 +1,18 @@
 import json
 import os
 from openai import OpenAI
-import src.tools as tools
-from src.logging import logger
+import agent.tools as tools
+from agent.logging import logger
+from dotenv import load_dotenv
+
+load_dotenv()
 
 client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
 
-def agent_create_tests(prompt: str, url: str):
+def agent(prompt: str, url: str):
     agent_working = True
     messages = []
     messages.append(
