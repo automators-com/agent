@@ -5,14 +5,19 @@ import agent.tools as tools
 from agent.logging import logger
 from dotenv import load_dotenv
 
-load_dotenv()
-
-client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY"),
-)
-
 
 def agent(prompt: str, url: str):
+    load_dotenv()
+    client = None
+    openai_api_key = os.environ.get("OPENAI_API_KEY")
+
+    if openai_api_key is None:
+        return logger.error(
+            "No OpenAI API key found. Please set the [purple3]OPENAI_API_KEY[/purple3] environment variable."
+        )
+
+    client = OpenAI(api_key=openai_api_key)
+
     agent_working = True
     messages = []
     messages.append(
@@ -41,12 +46,12 @@ def agent(prompt: str, url: str):
     )
 
     logger.info(
-        "Making initial agent request. Set log level to DEBUG to see the full request."
+        "Starting agent. Set log level to [cadet_blue]DEBUG[/cadet_blue] to see full requests."
     )
     logger.debug(json.dumps(messages, indent=2))
 
     response = client.chat.completions.create(
-        model=os.environ.get("OPENAI_MODEL"),
+        model=os.environ.get("OPENAI_MODEL", "gpt-4o"),
         messages=messages,
         tools=tools.tools,
         temperature=0.5,

@@ -1,0 +1,3 @@
+[agent]
+prompt = "Write some playwright tests in python for the signup flow"
+url = "https://dev.datamaker.app"

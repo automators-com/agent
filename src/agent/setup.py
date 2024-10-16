@@ -7,11 +7,8 @@ TEST_DIR = Path("tests")
 
 
 def setup():
-    if not TEST_DIR.exists():
-        TEST_DIR.mkdir()
-        # initialise the folder as a git repo
-        os.system(f"cd {TEST_DIR} && git init")
-
+    # create the tests directory if it doesn't exist
+    TEST_DIR.mkdir(exist_ok=True)
     # install playwright browsers
     os.popen("playwright install")
 

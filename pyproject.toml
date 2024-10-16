@@ -18,7 +18,7 @@ dependencies = [
 package = true
 
 [project.scripts]
-agent = "agent:app"
+agent = "agent.cli:main.app"
 
 [build-system]
 requires = ["hatchling"]

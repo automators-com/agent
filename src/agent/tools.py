@@ -1,6 +1,6 @@
 import os
 from playwright.sync_api import sync_playwright
-from agent.config import TEST_DIR
+from agent.setup import TEST_DIR
 from agent.utils import strip_code_fences
 from agent.logging import logger
 from typing import TypedDict
