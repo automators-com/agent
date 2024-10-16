@@ -28,10 +28,18 @@ def start(
         typer.Option(help="A url that acts as an entrypoint to app you're testing."),
     ] = None,
     clean: Annotated[
-        bool, typer.Option(help="Clean the out directory before running the tests.")
+        bool,
+        typer.Option(
+            help="Delete files from the 'tests' directory before starting the agent."
+        ),
     ] = False,
     version: Annotated[
-        Optional[bool], typer.Option("--version", callback=version_callback)
+        Optional[bool],
+        typer.Option(
+            "--version",
+            callback=version_callback,
+            help="Show agent version.",
+        ),
     ] = None,
 ):
     """Starts the test generation agent ✨"""

@@ -2,6 +2,7 @@ import typer
 from typing_extensions import Annotated
 from typing import Optional
 from pathlib import Path
+from agent.setup import TEST_DIR
 
 
 def init(
@@ -15,7 +16,7 @@ def init(
     folder.mkdir(exist_ok=True)
 
     # create the tests folder if it doesn't exist
-    test_dir = folder / "tests"
+    test_dir = folder / TEST_DIR
     test_dir.mkdir(exist_ok=True)
 
     # create an .env file if it doesn't exist
