@@ -3,6 +3,28 @@
 
 ## Installation
 
+Before you begin, ensure that you have [pipx](https://pipx.pypa.io/stable/installation) installed.
+
+1. Install the agent using pipx:
+
+```bash
+pipx install automators-agent
+```
+    
+2. Initialize the agent:
+
+```bash
+agent init
+```
+
+3. Update the `.env` file to include an OpenAI API key. Edit the prompt in the `config.toml` file and then start the agent:
+
+```bash
+agent start
+```
+
+## Setting up development environment
+
 Clone the repository:
 
 ```bash

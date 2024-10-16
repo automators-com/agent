@@ -1,21 +1,21 @@
 [project]
 name = "automators-agent"
-version = "0.1.1"
+version = "0.1.2"
 description = "Automators AI Agent"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "playwright>=1.47.0",
     "pytest>=8.3.3",
     "pytest-playwright>=0.5.2",
     "openai>=1.51.2",
     "python-dotenv>=1.0.1",
-    "rich>=13.9.2",
     "typer>=0.12.5",
+    "playwright>=1.47.0",
 ]
 
 [tool.uv]
 package = true
+override-dependencies = ["greenlet==3.1.0"]
 
 [project.scripts]
 agent = "agent.cli:main.app"
