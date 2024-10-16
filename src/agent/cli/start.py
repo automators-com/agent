@@ -6,16 +6,10 @@ from typing_extensions import Annotated
 from agent.setup import clean_dir
 from agent.completions import agent
 from agent.logging import logger
-from agent import __version__
+
 from rich.console import Console
 
 err_console = Console(stderr=True)
-
-
-def version_callback(value: bool):
-    if value:
-        print(f"Automators Agent CLI Version: {__version__}")
-        raise typer.Exit()
 
 
 def start(
@@ -33,14 +27,6 @@ def start(
             help="Delete files from the 'tests' directory before starting the agent."
         ),
     ] = False,
-    version: Annotated[
-        Optional[bool],
-        typer.Option(
-            "--version",
-            callback=version_callback,
-            help="Show agent version.",
-        ),
-    ] = None,
 ):
     """Starts the test generation agent ✨"""
 
