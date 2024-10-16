@@ -3,11 +3,9 @@ import os
 from openai import OpenAI
 import agent.tools as tools
 from agent.logging import logger
-from dotenv import load_dotenv
 
 
 def agent(prompt: str, url: str):
-    load_dotenv()
     client = None
     openai_api_key = os.environ.get("OPENAI_API_KEY")
 

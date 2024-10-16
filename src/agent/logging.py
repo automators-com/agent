@@ -3,9 +3,7 @@ import os
 from rich.logging import RichHandler
 from rich.console import Console
 from rich.theme import Theme
-from dotenv import load_dotenv
 
-load_dotenv()
 console = Console(
     theme=Theme(
         {
