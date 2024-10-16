@@ -4,9 +4,6 @@ from agent.setup import TEST_DIR
 from agent.utils import strip_code_fences
 from agent.logging import logger
 from typing import TypedDict
-from dotenv import load_dotenv
-
-load_dotenv()
 
 
 # TODO: Consider adding pydantic for additional data validation
