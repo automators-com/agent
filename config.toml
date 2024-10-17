@@ -1,3 +1,12 @@
+[config]
+language = "python"
+framework = "playwright"
+headless = false
+clean = true
+log_level = "INFO"
+
 [agent]
-prompt = "Write some playwright tests in python for the signup flow"
 url = "https://dev.datamaker.app"
+prompt = """
+Write some tests for this website to test the signup flow.
+"""

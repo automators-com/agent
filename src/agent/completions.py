@@ -5,7 +5,20 @@ import agent.tools as tools
 from agent.logging import logger, log_completion
 
 
-def agent(prompt: str, url: str):
+def language_prompt(language: str):
+    return f"You should write tests using the {language} programming language."
+
+
+def framework_prompt(framework: str):
+    if framework == "playwright":
+        return "Tests should be written using playwright. Use contexts and turn on tracing. Use page.locator where possible. Avoid using deprecated methods."
+    else:
+        return ""
+
+
+def agent(
+    prompt: str, url: str, language: str = "python", framework: str = "playwright"
+):
     client = None
     openai_api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -21,8 +34,14 @@ def agent(prompt: str, url: str):
     messages.append(
         {
             "role": "assistant",
-            "content": "You are a useful test code writing agent. Use the supplied tools to create passing tests for the user. You are not able to ask the user for additional input after the initial prompt.",
+            "content": "You are a useful test code writing agent. Use the supplied tools to create passing tests for the user.",
         },
+    )
+    messages.append(
+        {
+            "role": "assistant",
+            "content": f"{language_prompt(language)} {framework_prompt(framework)}",
+        }
     )
     messages.append(
         {
@@ -33,7 +52,7 @@ def agent(prompt: str, url: str):
     messages.append(
         {
             "role": "user",
-            "content": f"Our webpage entry point is: {url}",
+            "content": f"Our webpage entry point is: {url}. Consider the following requirements: {prompt}",
         },
     )
     messages.append(
@@ -52,7 +71,7 @@ def agent(prompt: str, url: str):
         model=os.environ.get("OPENAI_MODEL", "gpt-4o"),
         messages=messages,
         tools=tools.tools,
-        temperature=0.5,
+        temperature=0,
     )
 
     log_completion(response.to_json())
@@ -79,10 +98,10 @@ def agent(prompt: str, url: str):
 
             logger.debug(json.dumps(messages, indent=2))
             response = client.chat.completions.create(
-                model=os.environ.get("OPENAI_MODEL"),
+                model=os.environ.get("OPENAI_MODEL", "gpt-4o"),
                 messages=messages,
                 tools=tools.tools,
-                temperature=0.5,
+                temperature=0,
             )
             log_completion(response.to_json())
             tool_calls = response.choices[0].message.tool_calls

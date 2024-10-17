@@ -165,3 +165,7 @@ cython_debug/
 
 example/
 example/*
+
+trace.zip
+trace/
+trace/*

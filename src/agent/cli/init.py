@@ -3,6 +3,9 @@ from typing_extensions import Annotated
 from typing import Optional
 from pathlib import Path
 from agent.config import TEST_DIR
+from agent.logging import console
+from rich.panel import Panel
+from rich.markdown import Markdown
 
 
 def init(
@@ -12,6 +15,15 @@ def init(
     ] = ".",
 ):
     """Initialise a new directory for the project 🚀"""
+
+    if str(folder) == ".":
+        # ask for confirmation
+        confirm = typer.confirm(
+            "Do you want to initialise the project in the current directory?"
+        )
+        if not confirm:
+            raise typer.Exit()
+
     # make the project directory if it doesn't exist
     folder.mkdir(exist_ok=True)
 
@@ -24,9 +36,7 @@ def init(
     if not (env_dir).exists():
         with open(env_dir, "w") as f:
             f.write("OPENAI_API_KEY=''\n")
-            f.write("OPENAI_MODEL='gpt-4o'\n")
             f.write("HEADLESS=true\n")
-            f.write("LOG_LEVEL=INFO\n")
 
     # create a .gitignore file if it doesn't exist
     gitignore_dir = folder / ".gitignore"
@@ -38,8 +48,37 @@ def init(
     agent_config_dir = folder / "config.toml"
     if not (agent_config_dir).exists():
         with open(agent_config_dir, "w") as f:
-            f.write("[agent]\n")
-            f.write(
-                'prompt = "Write some playwright tests in python for the signup flow"\n'
-            )
-            f.write('url = "https://dev.datamaker.app"\n')
+            config_toml = r"""
+[config]
+language = "python"
+framework = "playwright"
+headless = false
+clean = true
+log_level = "INFO"
+
+[agent]
+url = "https://dev.datamaker.app"
+prompt = '''
+Test the signup and sign in flow of the app
+'''
+"""
+            f.write(config_toml)
+    console.print("\n")
+    console.print(
+        Panel(
+            Markdown(
+                f"""
+You can start writing tests using the agent CLI. Run the following commands to get started:
+- cd {folder}
+- agent start
+
+You may also need to add your *OPENAI_API_KEY* to the **.env** file. Modify your *prompt* in the **config.toml** file
+"""
+            ),
+            padding=(1, 1),
+            title="New project initialised successfully! 🚀",
+            highlight=True,
+            title_align="left",
+        )
+    )
+    console.print("\n")
