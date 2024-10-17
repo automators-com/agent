@@ -5,10 +5,12 @@
 
 Before you begin, ensure that you have [pipx](https://pipx.pypa.io/stable/installation) installed.
 
+> **Note:** Python 3.13 (which the default homebrew pipx install depends on) is not yet supported by us (see https://github.com/automators-com/agent/issues/7). We would suggest using `pip install pipx` in the interim.
+
 1. Install the agent using pipx:
 
 ```bash
-pipx install automators-agent
+python -m pipx install automators-agent
 ```
     
 2. Initialize the agent:
