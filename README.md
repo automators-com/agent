@@ -1,11 +1,20 @@
 # Automators Agent
 
-
-## Installation
+## Pre-requisites
 
 Before you begin, ensure that you have [pipx](https://pipx.pypa.io/stable/installation) installed.
 
 > **Note:** Python 3.13 (which the default homebrew pipx install depends on) is not yet supported by us (see https://github.com/automators-com/agent/issues/7). We would suggest using `pip install pipx` in the interim.
+
+You also need to have playwright installed:
+
+```bash
+pip install --upgrade pip
+pip install playwright
+playwright install
+```
+
+## Installation
 
 1. Install the agent using pipx:
 
