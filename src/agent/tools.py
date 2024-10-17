@@ -27,8 +27,8 @@ def extract_webpage_content(**kwargs: TExtractWebpageContent) -> str | None:
         page = browser.new_page()
         logger.info(f"Visiting {url}")
         page.goto(url)
-        logger.info("Waiting for page load state to be networkidle")
-        page.wait_for_load_state("networkidle")
+        logger.info("Waiting for page load state to be domcontentloaded")
+        page.wait_for_load_state("domcontentloaded")
         logger.info("Page loaded! Extracting content.")
         content = page.content()
         page_file_name = f"{url.replace('https://', '').replace('http://', '').replace('/', '_')}.html"
