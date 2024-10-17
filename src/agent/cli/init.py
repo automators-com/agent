@@ -2,7 +2,7 @@ import typer
 from typing_extensions import Annotated
 from typing import Optional
 from pathlib import Path
-from agent.setup import TEST_DIR
+from agent.config import TEST_DIR
 
 
 def init(
