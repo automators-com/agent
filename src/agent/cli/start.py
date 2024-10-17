@@ -1,13 +1,12 @@
+import os
 import typer
 import tomllib
 from pathlib import Path
-from typing import Optional
 from typing_extensions import Annotated
-from agent.setup import clean_dir
+from rich.console import Console
 from agent.completions import agent
 from agent.logging import logger
-
-from rich.console import Console
+from agent.config import TEST_DIR
 
 err_console = Console(stderr=True)
 
@@ -50,7 +49,8 @@ def start(
             raise typer.Exit()
 
     if clean:
-        clean_dir()
+        logger.info(f"Deleting files in the {TEST_DIR} directory")
+        os.popen(f"rm -rf {TEST_DIR}/*").read()
 
     # use the agent to create tests
     agent(prompt, url)
