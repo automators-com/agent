@@ -26,8 +26,15 @@ def start(
             help="Delete files from the 'tests' directory before starting the agent."
         ),
     ] = False,
+    debug: Annotated[
+        bool,
+        typer.Option(help="Enable debug mode for additional logs and file writing."),
+    ] = False,
 ):
     """Starts the test generation agent ✨"""
+
+    if debug:
+        logger.setLevel("DEBUG")
 
     if not prompt or not url:
         # check if the config file exists
