@@ -5,6 +5,7 @@ from agent.utils import run_pytest_and_capture_output, strip_code_fences
 from agent.logging import logger, console
 from rich.panel import Panel
 from typing import TypedDict
+from bs4 import BeautifulSoup
 
 
 # TODO: Consider adding pydantic for additional data validation
@@ -31,6 +32,17 @@ def extract_webpage_content(**kwargs: TExtractWebpageContent) -> str | None:
         page.wait_for_load_state("domcontentloaded")
         logger.info("Page loaded! Extracting content.")
         content = page.content()
+
+        # use beautiful soup to extract the body only
+        soup = BeautifulSoup(content, "html.parser")
+        # delete the head tag
+        soup.head.extract()
+        # delete the script tags
+        for script in soup.find_all("script"):
+            script.extract()
+
+        content = str(soup)
+
         page_file_name = f"{url.replace('https://', '').replace('http://', '').replace('/', '_')}.html"
 
         if os.environ.get("LOG_LEVEL", "INFO") == "DEBUG":
