@@ -2,7 +2,8 @@ import os
 from playwright.sync_api import sync_playwright
 from agent.setup import TEST_DIR
 from agent.utils import strip_code_fences
-from agent.logging import logger
+from agent.logging import logger, console
+from rich.panel import Panel
 from typing import TypedDict
 
 
@@ -63,7 +64,9 @@ def write_code_to_file(**kwargs: TWriteCodeToFile):
 def run_tests():
     logger.info("Running tests")
     output = os.popen(f"cd {TEST_DIR} && pytest").read()
-    logger.info(output)
+    console.print("\n")
+    console.print(Panel(output, title="Test Output", highlight=True, padding=(1, 1)))
+    console.print("\n")
     return output
 
 

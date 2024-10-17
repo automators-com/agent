@@ -2,7 +2,7 @@ import json
 import os
 from openai import OpenAI
 import agent.tools as tools
-from agent.logging import logger
+from agent.logging import logger, log_completion
 
 
 def agent(prompt: str, url: str):
@@ -55,19 +55,19 @@ def agent(prompt: str, url: str):
         temperature=0.5,
     )
 
-    logger.info(f"AGENT: {response.to_json()}")
+    log_completion(response.to_json())
     tool_calls = response.choices[0].message.tool_calls
 
     while agent_working:
         if tool_calls == [] or tool_calls is None:
-            logger.info("No tool calls returned. Exiting.")
+            logger.info("No action to be taken. Exiting.")
             agent_working = False
             break
 
         for tool_call in tool_calls:
             name = tool_call.function.name
             kwargs = json.loads(tool_call.function.arguments)
-            logger.info(f"Calling tool: {name} with arguments: {kwargs}")
+            logger.debug(f"Calling tool: {name} with arguments: {kwargs}")
 
             function_call_output = getattr(tools, name)(**kwargs)
             messages.append(
@@ -84,5 +84,5 @@ def agent(prompt: str, url: str):
                 tools=tools.tools,
                 temperature=0.5,
             )
-            logger.info(f"AGENT: {response.to_json()}")
+            log_completion(response.to_json())
             tool_calls = response.choices[0].message.tool_calls
