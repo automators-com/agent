@@ -30,11 +30,23 @@ def start(
         bool,
         typer.Option(help="Enable debug mode for additional logs and file writing."),
     ] = False,
+    headless: Annotated[
+        bool,
+        typer.Option(help="Run the browser in headless mode."),
+    ] = False,
 ):
     """Starts the test generation agent ✨"""
 
     if debug:
         logger.setLevel("DEBUG")
+        os.environ["LOG_LEVEL"] = "DEBUG"
+
+    if headless:
+        os.environ["HEADLESS"] = "true"
+
+    if clean:
+        logger.info(f"Deleting files in the {TEST_DIR} directory")
+        os.popen(f"rm -rf {TEST_DIR}/*").read()
 
     if not prompt or not url:
         # check if the config file exists
@@ -55,9 +67,8 @@ def start(
             )
             raise typer.Exit()
 
-    if clean:
-        logger.info(f"Deleting files in the {TEST_DIR} directory")
-        os.popen(f"rm -rf {TEST_DIR}/*").read()
-
     # use the agent to create tests
-    agent(prompt, url)
+    agent(
+        prompt=prompt,
+        url=url,
+    )

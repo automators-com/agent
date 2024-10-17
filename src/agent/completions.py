@@ -21,7 +21,7 @@ def agent(prompt: str, url: str):
     messages.append(
         {
             "role": "assistant",
-            "content": "You are a useful test code writing agent. Use the supplied tools to create passing tests for the user. You are not able to ask the user for additional input after the initial prompt.",
+            "content": "You are a useful test code writing agent. Use the supplied tools to create passing tests for the user. You are not able to ask the user for additional input after the initial prompt. If something goes wrong, make an educated guess and continue.",
         },
     )
     messages.append(
@@ -52,7 +52,7 @@ def agent(prompt: str, url: str):
         model=os.environ.get("OPENAI_MODEL", "gpt-4o"),
         messages=messages,
         tools=tools.tools,
-        temperature=0.5,
+        temperature=0,
     )
 
     log_completion(response.to_json())
@@ -79,10 +79,10 @@ def agent(prompt: str, url: str):
 
             logger.debug(json.dumps(messages, indent=2))
             response = client.chat.completions.create(
-                model=os.environ.get("OPENAI_MODEL"),
+                model=os.environ.get("OPENAI_MODEL", "gpt-4o"),
                 messages=messages,
                 tools=tools.tools,
-                temperature=0.5,
+                temperature=0,
             )
             log_completion(response.to_json())
             tool_calls = response.choices[0].message.tool_calls

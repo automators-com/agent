@@ -24,9 +24,7 @@ def init(
     if not (env_dir).exists():
         with open(env_dir, "w") as f:
             f.write("OPENAI_API_KEY=''\n")
-            f.write("OPENAI_MODEL='gpt-4o'\n")
             f.write("HEADLESS=true\n")
-            f.write("LOG_LEVEL=INFO\n")
 
     # create a .gitignore file if it doesn't exist
     gitignore_dir = folder / ".gitignore"
