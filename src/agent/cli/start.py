@@ -14,11 +14,11 @@ err_console = Console(stderr=True)
 def start(
     prompt: Annotated[
         str, typer.Option(help="A prompt describing the scope of your tests.")
-    ],
+    ] = None,
     url: Annotated[
         str,
         typer.Option(help="A url that acts as an entrypoint to app you're testing."),
-    ],
+    ] = None,
     clean: Annotated[
         bool,
         typer.Option(
