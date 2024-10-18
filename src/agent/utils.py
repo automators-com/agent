@@ -42,7 +42,7 @@ def check_for_screenshots():
         logger.info("Test results folder found. Checking for screenshots.")
         # find all image files in any subdirectories
         image_files = list(test_results.glob("**/*.png"))
-        logger.info(f"Found {len(image_files)} screenshots.")
+        logger.info(f"Found {len(image_files)} screenshot(s).")
         if image_files:
             for image_file in image_files:
                 # convert to base64 and display in a panel
