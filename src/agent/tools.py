@@ -1,13 +1,10 @@
 import os
-import zipfile
 import typer
-from pathlib import Path
 from playwright.sync_api import sync_playwright
 from agent.config import TEST_DIR, SUPPORTED_LANGUAGES
 from agent.rich import print_in_panel, print_in_question_panel
 from agent.utils import run_pytest_and_capture_output, strip_code_fences
-from agent.logging import logger, console
-from rich.panel import Panel
+from agent.logging import logger
 from typing import TypedDict
 from bs4 import BeautifulSoup
 
@@ -89,27 +86,6 @@ def run_tests():
     output = run_pytest_and_capture_output(TEST_DIR)
     # print output in a panel
     print_in_panel(output, "Test Output")
-
-    # check for a trace.zip file and extract it if it exists
-    trace_zip = Path("trace.zip")
-
-    if trace_zip.exists():
-        with zipfile.ZipFile(trace_zip, "r") as zip_ref:
-            # list images in the resouces subfolder
-            resources = zip_ref.namelist()
-            for resource in resources:
-                if resource.startswith("resources/") and resource.endswith(".jpeg"):
-                    zip_ref.extract(resource, TEST_DIR)
-                    # print the image in a panel
-                    console.print("\n")
-                    console.print(
-                        Panel(
-                            f"![{resource}](tests/{resource})",
-                            title="Test Output",
-                            highlight=True,
-                            padding=(1, 1),
-                        )
-                    )
 
     return output
 
