@@ -71,6 +71,9 @@ def create_completion(messages: list, client: OpenAI):
     )
     log_completion(response.to_json())
     tool_calls = response.choices[0].message.tool_calls
+    if tool_calls is None:
+        tool_calls = []
+
     return response, tool_calls
 
 
@@ -128,7 +131,7 @@ def agent(
     response, tool_calls = create_completion(messages, client)
 
     while agent_working:
-        if tool_calls == [] or tool_calls is None:
+        if tool_calls == []:
             logger.info("No obvious action to be taken.")
             # prompt the user for an additional prompt
             add_prompt = typer.confirm(
