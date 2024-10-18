@@ -5,6 +5,7 @@ from openai import OpenAI
 import agent.tools as tools
 from agent.logging import logger
 from agent.rich import print_in_panel, print_in_question_panel
+from agent.utils import check_for_screenshots
 
 
 def language_prompt(language: str):
@@ -13,7 +14,18 @@ def language_prompt(language: str):
 
 def framework_prompt(framework: str):
     if framework == "playwright":
-        return "Tests should be written using playwright. Use contexts and turn on tracing. Use page.locator where possible. Avoid using deprecated methods."
+        return """Tests should be written using playwright. We are using the pytest-playwright plugin, so you don't need to create your own browser context. Use page.locator where possible. Avoid using deprecated methods.
+
+        The structure of each test should be as follows:
+        
+        ```
+        from playwright.sync_api import Page
+
+        def test_name(page: Page):
+            # test code here
+        
+        ```
+        """
     else:
         return ""
 
@@ -152,6 +164,27 @@ def agent(
                     "content": f"Called tool: {name} with arguments: {kwargs}. The function call output was: {function_call_output} ",
                 }
             )
+            if name == "run_tests":
+                screenshots = check_for_screenshots()
+                for screenshot in screenshots:
+                    logger.info("Screenshot found. Adding to context.")
+                    messages.append(
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Screenshots were taken on test failure. Please review the screenshots below to help debug the failing tests.",
+                                },
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/jpeg;base64,{screenshot}"
+                                    },
+                                },
+                            ],
+                        }
+                    )
 
             logger.debug(json.dumps(messages, indent=2))
             response, tool_calls = create_completion(messages, client)
