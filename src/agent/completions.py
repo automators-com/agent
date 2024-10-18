@@ -1,8 +1,10 @@
 import json
 import os
+import typer
 from openai import OpenAI
 import agent.tools as tools
-from agent.logging import logger, log_completion
+from agent.logging import logger
+from agent.rich import print_in_panel, print_in_question_panel
 
 
 def language_prompt(language: str):
@@ -14,6 +16,50 @@ def framework_prompt(framework: str):
         return "Tests should be written using playwright. Use contexts and turn on tracing. Use page.locator where possible. Avoid using deprecated methods."
     else:
         return ""
+
+
+def log_completion(res: dict):
+    # try to get ai message content
+    try:
+        content = json.loads(res)["choices"][0]["message"]["content"]
+    except KeyError:
+        content = None
+
+    # try to get tool function calls
+
+    try:
+        tool_calls = json.loads(res)["choices"][0]["message"]["tool_calls"]
+    except KeyError:
+        tool_calls = None
+
+    # log info in a panel
+    if content:
+        print_in_panel(str(content), title="Agent Message")
+
+    if tool_calls:
+        # loop through tool calls and format them as python function calls
+        for tool_call in tool_calls:
+            name = tool_call["function"]["name"]
+            kwargs = json.loads(tool_call["function"]["arguments"])
+            # truncate any long arguments
+            for key, value in kwargs.items():
+                if len(str(value)) > 50:
+                    kwargs[key] = f"{str(value)[:50]}..."
+
+            print_in_panel(f"{name}({kwargs})", title="Tool Call Requested")
+
+
+def create_completion(messages: list, client: OpenAI):
+    response = client.chat.completions.create(
+        model=os.environ.get("OPENAI_MODEL", "gpt-4o"),
+        messages=messages,
+        tools=tools.tools,
+        temperature=0.2,
+        top_p=0.1,
+    )
+    log_completion(response.to_json())
+    tool_calls = response.choices[0].message.tool_calls
+    return response, tool_calls
 
 
 def agent(
@@ -46,7 +92,7 @@ def agent(
     messages.append(
         {
             "role": "assistant",
-            "content": "If tests are not passing, consider using the tools to debug the issue. You can overwrite any code in the out folder using the relevant tools. Use links found on the webpage to determine if navigation to other pages are required. You can use the extract_webpage_content tool in place of navigation. Do not make assumptions about the app structure or redirects unless there are clear links to support it.",
+            "content": "If tests are not passing, consider using the tools to debug the issue. You can overwrite any code in the 'tests' folder using the relevant tools. Use links found on the webpage to determine if navigation to other pages are required. You can use the extract_webpage_content tool in place of navigation. Do not make assumptions about the app structure or redirects unless there are clear links to support it. If you need input from the user, always use the get_user_input tool.",
         },
     )
     messages.append(
@@ -67,21 +113,32 @@ def agent(
     )
     logger.debug(json.dumps(messages, indent=2))
 
-    response = client.chat.completions.create(
-        model=os.environ.get("OPENAI_MODEL", "gpt-4o"),
-        messages=messages,
-        tools=tools.tools,
-        temperature=0,
-    )
-
-    log_completion(response.to_json())
-    tool_calls = response.choices[0].message.tool_calls
+    response, tool_calls = create_completion(messages, client)
 
     while agent_working:
         if tool_calls == [] or tool_calls is None:
-            logger.info("No action to be taken. Exiting.")
-            agent_working = False
-            break
+            logger.info("No obvious action to be taken.")
+            # prompt the user for an additional prompt
+            add_prompt = typer.confirm(
+                "Would you like to add an additional prompt?",
+            )
+            if add_prompt:
+                print_in_question_panel(
+                    "Please enter an additional prompt to give the agent more context or steer it in the right direction.",
+                    title="Additional Prompt",
+                )
+                user_input = typer.prompt("Additional Prompt")
+                if user_input:
+                    messages.append(
+                        {
+                            "role": "user",
+                            "content": user_input,
+                        }
+                    )
+                    response, tool_calls = create_completion(messages, client)
+            else:
+                agent_working = False
+                break
 
         for tool_call in tool_calls:
             name = tool_call.function.name
@@ -97,11 +154,4 @@ def agent(
             )
 
             logger.debug(json.dumps(messages, indent=2))
-            response = client.chat.completions.create(
-                model=os.environ.get("OPENAI_MODEL", "gpt-4o"),
-                messages=messages,
-                tools=tools.tools,
-                temperature=0,
-            )
-            log_completion(response.to_json())
-            tool_calls = response.choices[0].message.tool_calls
+            response, tool_calls = create_completion(messages, client)

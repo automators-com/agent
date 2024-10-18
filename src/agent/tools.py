@@ -1,6 +1,10 @@
 import os
+import zipfile
+import typer
+from pathlib import Path
 from playwright.sync_api import sync_playwright
-from agent.config import TEST_DIR
+from agent.config import TEST_DIR, SUPPORTED_LANGUAGES
+from agent.rich import print_in_panel, print_in_question_panel
 from agent.utils import run_pytest_and_capture_output, strip_code_fences
 from agent.logging import logger, console
 from rich.panel import Panel
@@ -65,12 +69,16 @@ def write_code_to_file(**kwargs: TWriteCodeToFile):
     code = kwargs.get("code", None)
     file_name = kwargs.get("file_name", "test_by_automators_agent.py")
 
+    if not file_name.endswith(".py"):
+        return f"Invalid language provided. Only the following languages are supported: {SUPPORTED_LANGUAGES}. Please rewrite the code in a supported language."
+
     if not code:
         return logger.error("code or file_name not provided to write code to file.")
 
     logger.info(f"Writing code to file {file_name}")
     with open(TEST_DIR / file_name, "w+") as f:
         f.write(strip_code_fences(code))
+        return f"Code written to {file_name}"
 
 
 def run_tests():
@@ -80,10 +88,46 @@ def run_tests():
     # run the tests and capture the output
     output = run_pytest_and_capture_output(TEST_DIR)
     # print output in a panel
-    console.print("\n")
-    console.print(Panel(output, title="Test Output", highlight=True, padding=(1, 1)))
-    console.print("\n")
+    print_in_panel(output, "Test Output")
+
+    # check for a trace.zip file and extract it if it exists
+    trace_zip = Path("trace.zip")
+
+    if trace_zip.exists():
+        with zipfile.ZipFile(trace_zip, "r") as zip_ref:
+            # list images in the resouces subfolder
+            resources = zip_ref.namelist()
+            for resource in resources:
+                if resource.startswith("resources/") and resource.endswith(".jpeg"):
+                    zip_ref.extract(resource, TEST_DIR)
+                    # print the image in a panel
+                    console.print("\n")
+                    console.print(
+                        Panel(
+                            f"![{resource}](tests/{resource})",
+                            title="Test Output",
+                            highlight=True,
+                            padding=(1, 1),
+                        )
+                    )
+
     return output
+
+
+class TGetUserInput(TypedDict):
+    question: str
+
+
+def get_user_input(**kwargs: TGetUserInput) -> str:
+    question = kwargs.get("question", None)
+
+    if not question:
+        return logger.error("No question provided to get user input for.")
+
+    print_in_question_panel(question)
+    response = typer.prompt("Response")
+
+    return response
 
 
 tools = [
@@ -130,6 +174,24 @@ tools = [
                     },
                 },
                 "required": ["url"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_user_input",
+            "description": "Prompts the user for input. Use this tool to get input from the user when needed.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "question": {
+                        "type": "string",
+                        "description": "The question to ask the user for input.",
+                    },
+                },
+                "required": ["question"],
                 "additionalProperties": False,
             },
         },
