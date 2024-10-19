@@ -14,7 +14,7 @@ def language_prompt(language: str):
 
 def framework_prompt(framework: str):
     if framework == "playwright":
-        return """Tests should be written using playwright. We are using the pytest-playwright plugin, so you don't need to create your own browser context. Use page.locator where possible. Avoid using deprecated methods.
+        return """Tests should be written using playwright. We are using the pytest-playwright plugin, so you don't need to create your own browser context. Use page.locator where possible - use classnames, ids, placeholders, visible text or even labels to find elements. Avoid using deprecated methods.
 
         The structure of each test should be as follows:
         
@@ -66,8 +66,8 @@ def create_completion(messages: list, client: OpenAI):
         model=os.environ.get("OPENAI_MODEL", "gpt-4o"),
         messages=messages,
         tools=tools.tools,
-        temperature=0.2,
-        top_p=0.1,
+        tool_choice="auto",
+        temperature=0.3,
     )
     log_completion(response.to_json())
     tool_calls = response.choices[0].message.tool_calls
@@ -107,7 +107,11 @@ def agent(
     messages.append(
         {
             "role": "assistant",
-            "content": "If tests are not passing, consider using the tools to debug the issue. You can overwrite any code in the 'tests' folder using the relevant tools. Use links found on the webpage to determine if navigation to other pages are required. You can use the extract_webpage_content tool in place of navigation. Do not make assumptions about the app structure or redirects unless there are clear links to support it. If you need input from the user, always use the get_user_input tool.",
+            "content": """If tests are not passing, consider using the tools to debug the issue. 
+            - You can overwrite any code in the 'tests' folder using the relevant tools. Use links found on the webpage to determine if navigation to other pages are required. 
+            - You can use the extract_webpage_content tool in place of navigation. 
+            - Do not make assumptions about the app structure or redirects unless there are clear links to support it. If you need more context, add code to save screenshots to the 'test-results' folder and the run the tests. We will send you the screenshots.
+            - If you need input from the user, always use the get_user_input tool.""",
         },
     )
     messages.append(
@@ -134,23 +138,19 @@ def agent(
         if tool_calls == []:
             logger.info("No obvious action to be taken.")
             # prompt the user for an additional prompt
-            add_prompt = typer.confirm(
-                "Would you like to add an additional prompt?",
+            print_in_question_panel(
+                """Please enter an additional prompt if you would like to give the agent more context. If you have no additional prompt, you can type exit to stop the agent.""",
+                title="Additional Prompt",
             )
-            if add_prompt:
-                print_in_question_panel(
-                    "Please enter an additional prompt to give the agent more context or steer it in the right direction.",
-                    title="Additional Prompt",
+            user_input = typer.prompt("Additional Prompt")
+            if user_input.lower() != "exit":
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": user_input,
+                    }
                 )
-                user_input = typer.prompt("Additional Prompt")
-                if user_input:
-                    messages.append(
-                        {
-                            "role": "user",
-                            "content": user_input,
-                        }
-                    )
-                    response, tool_calls = create_completion(messages, client)
+                response, tool_calls = create_completion(messages, client)
             else:
                 agent_working = False
                 break

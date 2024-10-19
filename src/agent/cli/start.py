@@ -1,7 +1,5 @@
 import os
 import typer
-import tomllib
-from pathlib import Path
 from typing_extensions import Annotated
 from rich.console import Console
 from agent.completions import agent
@@ -63,9 +61,14 @@ def start(
         config["agent"]["framework"] = framework
 
     # perform actions based on config
-    if str(config["config"]["log_level"]).lower() == "debug":
-        logger.setLevel("DEBUG")
-        os.environ["LOG_LEVEL"] = "DEBUG"
+    log_level = str(config["config"]["log_level"]).upper()
+
+    # set a defualt log level if invalid
+    if log_level not in ["DEBUG", "INFO", "WARN", "ERROR"]:
+        log_level = "INFO"
+
+    logger.setLevel(log_level)
+    os.environ["LOG_LEVEL"] = log_level
 
     if str(config["config"]["headless"]).lower() == "true":
         os.environ["HEADLESS"] = "true"

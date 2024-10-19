@@ -12,6 +12,8 @@ dependencies = [
     "typer>=0.12.5",
     "playwright>=1.47.0",
     "beautifulsoup4>=4.12.3",
+    "moviepy>=1.0.3",
+    "pillow>=11.0.0",
 ]
 
 [tool.uv]
