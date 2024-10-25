@@ -91,6 +91,14 @@ def check_for_screenshots():
     test_results = Path("test-results")
 
     if test_results.exists():
+        # unzip any trace.zip folders
+        trace_files = list(test_results.glob("**/*.zip"))
+        logger.info(f"Found {len(trace_files)} trace file(s).")
+        if trace_files:
+            for trace_file in trace_files:
+                # extract the contents of the zip file
+                subprocess.run(["unzip", str(trace_file), "-d", str(trace_file.parent)])
+
         # check for video files
         video_files = list(test_results.glob("**/*.webm"))
         logger.info(f"Found {len(video_files)} video(s).")
