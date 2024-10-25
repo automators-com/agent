@@ -6,14 +6,18 @@ import agent.tools as tools
 from agent.logging import logger
 from agent.rich import print_in_panel, print_in_question_panel
 from agent.utils import check_for_screenshots
+from agent.config import SUPPORTED_LANGUAGES
 
 
 def language_prompt(language: str):
+    if language.lower() not in SUPPORTED_LANGUAGES:
+        logger.error(f"Language {language} not supported.")
+        raise typer.Exit()
     return f"You should write tests using the {language} programming language."
 
 
-def framework_prompt(framework: str):
-    if framework == "playwright":
+def framework_prompt(framework: str, language: str = "python"):
+    if framework == "playwright" and language == "python":
         return """Tests should be written using playwright. We are using the pytest-playwright plugin, so you don't need to create your own browser context. Use page.locator where possible - use classnames, ids, placeholders, visible text or even labels to find elements. Avoid using deprecated methods.
 
         The structure of each test should be as follows:
@@ -26,6 +30,49 @@ def framework_prompt(framework: str):
         
         ```
         """
+    elif framework == "playwright" and language == "typescript":
+        return """
+        Tests should be written using playwright. Use page.locator where possible - use classnames, ids, placeholders, visible text or even labels to find elements. Avoid using deprecated methods. Avoid imports from any external libraries unless the user specifies it.
+
+        The structure of each test should be as follows:
+
+        ```typescript
+        // example.spec.ts
+        import { test, expect } from '@playwright/test';
+
+        test('has title', async ({ page }) => {
+            await page.goto('https://playwright.dev/');
+
+            // Expect a title "to contain" a substring.
+            await expect(page).toHaveTitle(/Playwright/);
+        });
+        ```
+        """
+
+    elif framework == "playwright" and language == "javascript":
+        return """
+        Tests should be written using playwright. Use page.locator where possible - use classnames, ids, placeholders, visible text or even labels to find elements. Avoid using deprecated methods. Avoid imports from any external libraries unless the user specifies it.
+
+        The structure of each test should be as follows:
+
+        ```typescript
+        // example.spec.js
+        import { test, expect } from '@playwright/test';
+
+        test('has title', async ({ page }) => {
+            await page.goto('https://playwright.dev/');
+
+            // Expect a title "to contain" a substring.
+            await expect(page).toHaveTitle(/Playwright/);
+        });
+        ```
+        """
+    elif framework == "cypress" and language == "javascript":
+        raise typer.Exit("Cypress with javascript is not supported.")
+    elif framework == "playwright" and language == "typescript":
+        raise typer.Exit("Playwright with typescript is not supported.")
+    elif framework == "cypress" and language == "python":
+        raise typer.Exit("Cypress with python is not supported.")
     else:
         return ""
 

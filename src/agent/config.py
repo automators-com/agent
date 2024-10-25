@@ -3,7 +3,8 @@ from pathlib import Path
 
 # create a folder to store the generated code
 TEST_DIR = Path("tests")
-SUPPORTED_LANGUAGES = ["python"]
+SUPPORTED_LANGUAGES = ["python", "typescript", "javascript"]
+SUPPORTED_FRAMEWORKS = ["playwright", "cypress"]
 
 
 def read_config():

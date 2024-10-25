@@ -3,7 +3,11 @@ import typer
 from playwright.sync_api import sync_playwright
 from agent.config import TEST_DIR, SUPPORTED_LANGUAGES
 from agent.rich import print_in_panel, print_in_question_panel
-from agent.utils import run_pytest_and_capture_output, strip_code_fences
+from agent.utils import (
+    run_playwright,
+    run_pytest_playwright,
+    strip_code_fences,
+)
 from agent.logging import logger
 from typing import TypedDict
 from bs4 import BeautifulSoup
@@ -64,16 +68,32 @@ class TWriteCodeToFile(TypedDict):
 
 def write_code_to_file(**kwargs: TWriteCodeToFile):
     code = kwargs.get("code", None)
-    file_name = kwargs.get("file_name", "test_by_automators_agent.py")
+    file_name = kwargs.get("file_name", None)
 
-    if not file_name.endswith(".py"):
-        return f"Invalid language provided. Only the following languages are supported: {SUPPORTED_LANGUAGES}. Please rewrite the code in a supported language."
+    if not code or not file_name:
+        error_message = "code or file_name not provided to write code to file."
+        logger.error(error_message)
+        return error_message
 
-    if not code:
-        return logger.error("code or file_name not provided to write code to file.")
+    # get language from environment
+    language = os.environ.get("AGENT_LANGUAGE", "python")
+
+    if language == "python" and not file_name.endswith(".py"):
+        return "Invalid language or file extension provided. Please rewrite the code in python and use a .py extension."
+    elif language == "typescript" and not file_name.endswith(".spec.ts"):
+        return "Invalid language or file extension provided. Please rewrite the code in typescript and use a .spec.ts extension."
+    elif language == "javascript" and not file_name.endswith(".spec.js"):
+        return "Invalid language or file extension provided. Please rewrite the code in javascript and use a .spec.js extension."
+
+    out_dir = TEST_DIR
+
+    if language == "typescript" or language == "javascript":
+        out_dir = TEST_DIR / "tests"
+        # ensure the tests directory exists
+        out_dir.mkdir(exist_ok=True)
 
     logger.info(f"Writing code to file {file_name}")
-    with open(TEST_DIR / file_name, "w+") as f:
+    with open(out_dir / file_name, "w+") as f:
         f.write(strip_code_fences(code))
         return f"Code written to {file_name}"
 
@@ -82,12 +102,31 @@ def run_tests():
     # ensure the tests directory exists
     TEST_DIR.mkdir(exist_ok=True)
     logger.info("Running tests")
-    # run the tests and capture the output
-    output = run_pytest_and_capture_output(TEST_DIR)
-    # print output in a panel
-    print_in_panel(output, "Test Output")
 
-    return output
+    # get the language and framework from the environment
+    language = os.environ.get("AGENT_LANGUAGE", "python")
+    framework = os.environ.get("AGENT_FRAMEWORK", "playwright")
+    if language == "python" and framework == "playwright":
+        # run the tests and capture the output
+        output = run_pytest_playwright(TEST_DIR)
+        # print output in a panel
+        print_in_panel(output, "Test Output")
+        return output
+
+    elif language == "typescript" and framework == "playwright":
+        output = run_playwright(TEST_DIR)
+        print_in_panel(output, "Test Output")
+        return output
+    elif language == "typescript" and framework == "cypress":
+        return "Not possible to run tests."
+    elif language == "javascript" and framework == "playwright":
+        output = run_playwright(TEST_DIR)
+        print_in_panel(output, "Test Output")
+        return output
+    elif language == "javascript" and framework == "cypress":
+        return "Not possible to run tests."
+    else:
+        return "Not possible to run tests."
 
 
 class TGetUserInput(TypedDict):
