@@ -46,6 +46,7 @@ cd agent
 Install the dependencies:
 
 ```bash
+pip install uv
 uv sync --all-extras --dev
 ```
 
@@ -53,6 +54,7 @@ Install playwright:
     
 ```bash
 playwright install chromium
+# npx playwright install chromium
 ```
 
 ## Environment Variables
@@ -71,5 +73,5 @@ LOG_LEVEL="INFO"
 Run the agent:
 
 ```bash
-uv run agent
+uv run agent start
 ```
