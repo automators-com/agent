@@ -7,13 +7,26 @@ from pathlib import Path
 from contextlib import redirect_stdout
 from agent.logging import logger
 from agent.video import extract_frames
+import subprocess
 
 
 def strip_code_fences(code):
-    return code.replace("```python", "").replace("```", "")
+    potential_fences = [
+        "```python",
+        "```py",
+        "```typescript",
+        "```ts",
+        "```javascript",
+        "```js",
+        "```",
+    ]
+    for fence in potential_fences:
+        code = code.replace(fence, "")
+
+    return code
 
 
-def run_pytest_and_capture_output(test_dir: Path) -> str:
+def run_pytest_playwright(test_dir: Path) -> str:
     # Create a StringIO buffer to capture the output
     buffer = io.StringIO()
     args = [
@@ -34,6 +47,31 @@ def run_pytest_and_capture_output(test_dir: Path) -> str:
             args,
             plugins=[pytest_playwright],
         )
+    # Get the content of the buffer
+    output = buffer.getvalue()
+    # Close the buffer
+    buffer.close()
+    return output
+
+
+def run_playwright(test_dir: Path) -> str:
+    # Create a StringIO buffer to capture the output
+    buffer = io.StringIO()
+    cmd = ["npx", "playwright", "test", "--trace=on", "--reporter=line"]
+    headless = os.environ.get("HEADLESS", False)
+    if not headless:
+        cmd.append("--ui")
+
+    # Run the command using subprocess and capture the output
+    process = subprocess.Popen(
+        cmd, cwd=test_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+    )
+    stdout, stderr = process.communicate()
+
+    # Write the output to the buffer
+    buffer.write(stdout)
+    buffer.write(stderr)
+
     # Get the content of the buffer
     output = buffer.getvalue()
     # Close the buffer

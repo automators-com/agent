@@ -1,12 +1,28 @@
 [config]
-language = "python"
+language = "typescript"
 framework = "playwright"
-headless = false
+headless = true
 clean = true
 log_level = "INFO"
 
 [agent]
-url = "https://dev.datamaker.app"
+url = "https://dev.capacities.app"
 prompt = """
-Write some tests for this website to test the signup flow.
+Help me write some tests for my time tracking system. - Test the signup flow of the app. 
+
+Use a unique user and org each time using uuids. If the signup is successful, you will be able to go to the signin page and log in with that user. Use the placeholders on the inputs if you cannot get ids or names for the inputs. 
+
+To signup, you will need to provide the following fields: email, password, password confirmation, first name, last name, org name. 
+- Test that the signin functionality works as expected. If the signin works as expected, proceed you will be on the /planning page. You should create a fixture for signing in before each test. The credentials for the test user are agent@automators.com and Automators@123 
+- Write a test that creates an office.  You will need to be signed in to do this. Go to the /settings page. Click the Add Office button. Fill out the form by providing data for the following ids and then clicking the save button:    
+- officeName (Ensure uniqueness by using a uuid)
+- companyStreet     
+- companyCity     
+- companyCountry     
+- companyPostCode     
+- idNumber     
+- iban     
+- bic 
+
+If you're confused about anything, please ask me for input.
 """

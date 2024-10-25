@@ -5,6 +5,13 @@ from rich.console import Console
 from agent.completions import agent
 from agent.logging import logger
 from agent.config import TEST_DIR, read_config
+from agent.runtime import (
+    check_for_node,
+    check_for_npm,
+    check_for_playwright,
+    check_for_playwright_browsers,
+    setup_playwright_env,
+)
 
 err_console = Console(stderr=True)
 
@@ -55,10 +62,10 @@ def start(
         config["config"]["log_level"] = "DEBUG"
     if clean:
         config["config"]["clean"] = clean
-    if language:
-        config["agent"]["language"] = language
-    if framework:
-        config["agent"]["framework"] = framework
+    if language != "python":
+        config["config"]["language"] = language
+    if framework == "playwright":
+        config["config"]["framework"] = framework
 
     # perform actions based on config
     log_level = str(config["config"]["log_level"]).upper()
@@ -73,9 +80,9 @@ def start(
     if str(config["config"]["headless"]).lower() == "true":
         os.environ["HEADLESS"] = "true"
 
-    if str(config["config"]["clean"]).lower() == "true":
-        logger.info(f"Deleting files in the {TEST_DIR} directory")
-        os.popen(f"rm -rf {TEST_DIR}/*").read()
+    # set agent language and framework as env vars
+    os.environ["AGENT_LANGUAGE"] = config["config"]["language"]
+    os.environ["AGENT_FRAMEWORK"] = config["config"]["framework"]
 
     # raise an error if required config is missing
     for item in ["url", "prompt"]:
@@ -85,8 +92,37 @@ def start(
             )
             raise typer.Exit()
 
+    # setup the testing environment
+    if config["config"]["language"] in ["javascript", "typescript"]:
+        node_version = check_for_node()
+        npm_version = check_for_npm()
+
+        if not node_version or not npm_version:
+            logger.error(
+                "Node.js and npm is required to run the agent in JavaScript or TypeScript mode."
+            )
+            raise typer.Exit()
+
+    # check if playwright is installed
+    if config["config"]["framework"] == "playwright":
+        playwright_version = check_for_playwright()
+        if not playwright_version:
+            logger.error("Playwright is required to run the agent in Playwright mode.")
+            raise typer.Exit()
+
+    # clean out the test directory
+    if str(config["config"]["clean"]).lower() == "true":
+        logger.info(f"Deleting files in the {TEST_DIR} directory")
+        os.popen(f"rm -rf {TEST_DIR}/*").read()
+
+        if config["config"]["framework"] == "playwright":
+            setup_playwright_env(TEST_DIR, language=config["config"]["language"])
+            check_for_playwright_browsers(TEST_DIR)
+
     # call the agent
     agent(
         prompt=config["agent"]["prompt"],
         url=config["agent"]["url"],
+        language=config["config"]["language"],
+        framework=config["config"]["framework"],
     )
