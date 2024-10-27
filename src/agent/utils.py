@@ -58,9 +58,28 @@ def run_playwright(test_dir: Path) -> str:
     # Create a StringIO buffer to capture the output
     buffer = io.StringIO()
     cmd = ["npx", "playwright", "test", "--trace=on", "--reporter=line"]
-    headless = os.environ.get("HEADLESS", False)
-    if not headless:
-        cmd.append("--ui")
+
+    # Run the command using subprocess and capture the output
+    process = subprocess.Popen(
+        cmd, cwd=test_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+    )
+    stdout, stderr = process.communicate()
+
+    # Write the output to the buffer
+    buffer.write(stdout)
+    buffer.write(stderr)
+
+    # Get the content of the buffer
+    output = buffer.getvalue()
+    # Close the buffer
+    buffer.close()
+    return output
+
+
+def run_cypress(test_dir: Path) -> str:
+    # Create a StringIO buffer to capture the output
+    buffer = io.StringIO()
+    cmd = ["npx", "cypress", "run", "--headless"]
 
     # Run the command using subprocess and capture the output
     process = subprocess.Popen(

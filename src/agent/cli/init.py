@@ -2,7 +2,7 @@ import typer
 from typing_extensions import Annotated
 from typing import Optional
 from pathlib import Path
-from agent.config import TEST_DIR
+from agent.config import get_test_dir
 from agent.logging import console
 from rich.panel import Panel
 from rich.markdown import Markdown
@@ -28,7 +28,8 @@ def init(
     folder.mkdir(exist_ok=True)
 
     # create the tests folder if it doesn't exist
-    test_dir = folder / TEST_DIR
+    test_dir = get_test_dir()
+    test_dir = folder / test_dir
     test_dir.mkdir(exist_ok=True)
 
     # create an .env file if it doesn't exist

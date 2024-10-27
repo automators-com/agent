@@ -1,6 +1,6 @@
 [config]
 language = "typescript"
-framework = "playwright"
+framework = "cypress"
 headless = true
 clean = true
 log_level = "INFO"

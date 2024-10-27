@@ -1,9 +1,10 @@
 import os
 import typer
 from playwright.sync_api import sync_playwright
-from agent.config import TEST_DIR, SUPPORTED_LANGUAGES
+from agent.config import get_test_dir
 from agent.rich import print_in_panel, print_in_question_panel
 from agent.utils import (
+    run_cypress,
     run_playwright,
     run_pytest_playwright,
     strip_code_fences,
@@ -52,7 +53,8 @@ def extract_webpage_content(**kwargs: TExtractWebpageContent) -> str | None:
 
         if os.environ.get("LOG_LEVEL", "INFO") == "DEBUG":
             logger.info(f"Writing content to {page_file_name}")
-            with open(TEST_DIR / page_file_name, "w+") as f:
+            test_dir = get_test_dir()
+            with open(test_dir / page_file_name, "w+") as f:
                 f.write(content)
 
         logger.info("Closing browser")
@@ -85,10 +87,10 @@ def write_code_to_file(**kwargs: TWriteCodeToFile):
     elif language == "javascript" and not file_name.endswith(".spec.js"):
         return "Invalid language or file extension provided. Please rewrite the code in javascript and use a .spec.js extension."
 
-    out_dir = TEST_DIR
+    out_dir = get_test_dir()
 
     if language == "typescript" or language == "javascript":
-        out_dir = TEST_DIR / "tests"
+        out_dir = out_dir / "tests"
         # ensure the tests directory exists
         out_dir.mkdir(exist_ok=True)
 
@@ -100,7 +102,8 @@ def write_code_to_file(**kwargs: TWriteCodeToFile):
 
 def run_tests():
     # ensure the tests directory exists
-    TEST_DIR.mkdir(exist_ok=True)
+    test_dir = get_test_dir()
+    test_dir.mkdir(exist_ok=True)
     logger.info("Running tests")
 
     # get the language and framework from the environment
@@ -108,23 +111,27 @@ def run_tests():
     framework = os.environ.get("AGENT_FRAMEWORK", "playwright")
     if language == "python" and framework == "playwright":
         # run the tests and capture the output
-        output = run_pytest_playwright(TEST_DIR)
+        output = run_pytest_playwright(test_dir)
         # print output in a panel
         print_in_panel(output, "Test Output")
         return output
 
     elif language == "typescript" and framework == "playwright":
-        output = run_playwright(TEST_DIR)
+        output = run_playwright(test_dir)
+        print_in_panel(output, "Test Output")
+        return output
+    elif language == "javascript" and framework == "playwright":
+        output = run_playwright(test_dir)
         print_in_panel(output, "Test Output")
         return output
     elif language == "typescript" and framework == "cypress":
-        return "Not possible to run tests."
-    elif language == "javascript" and framework == "playwright":
-        output = run_playwright(TEST_DIR)
+        output = run_cypress(test_dir)
         print_in_panel(output, "Test Output")
         return output
     elif language == "javascript" and framework == "cypress":
-        return "Not possible to run tests."
+        output = run_cypress(test_dir)
+        print_in_panel(output, "Test Output")
+        return output
     else:
         return "Not possible to run tests."
 
@@ -150,14 +157,14 @@ tools = [
         "type": "function",
         "function": {
             "name": "run_tests",
-            "description": "Runs the written tests in the 'tests' folder. Call this whenever you need to validate if the tests are working as expected.",
+            "description": f"Runs the written tests in the '{get_test_dir()}' folder. Call this whenever you need to validate if the tests are working as expected.",
         },
     },
     {
         "type": "function",
         "function": {
             "name": "write_code_to_file",
-            "description": "Writes the generated code to a file. Once the tests are written to the file, you will be able to run them using 'run_tests'. The file will be created in the 'tests' folder. We are using the w+ mode to write the file.",
+            "description": f"Writes the generated code to a file. Once the tests are written to the file, you will be able to run them using 'run_tests'. The file will be created in the '{get_test_dir()}' folder. We are using the w+ mode to write the file.",
             "parameters": {
                 "type": "object",
                 "properties": {
