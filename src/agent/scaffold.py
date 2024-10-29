@@ -199,29 +199,6 @@ def scaffold_cypress(test_dir: Path, language: str, clean=True) -> None:
     if language == "python":
         return None
 
-    # run the playwright init command
-    logger.info("Setting up cypress environment.")
-    # create a package.json file
-    with open(test_dir / "package.json", "w") as f:
-        f.write(
-            """{
-  "name": "agent-tests",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "cypress": "latest",
-    "uuid": "latest",
-    "typescript": "latest"
-  }
-}
-            """
-        )
-
     # add a gitignore file
     logger.info("Adding a .gitignore file.")
     with open(test_dir / ".gitignore", "w") as f:
@@ -241,6 +218,24 @@ node_modules/
         with open(support_folder / "e2e.ts", "w") as f:
             f.write("""import './commands'""")
 
+        # create a package.json file
+        with open(test_dir / "package.json", "w") as f:
+            f.write("""{
+  "name": "agent-tests",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "cypress": "latest",
+    "uuid": "latest",
+    "typescript": "latest"
+  }
+}""")
+
         logger.info("Adding a cypress.config.ts file.")
         with open(test_dir / "cypress.config.ts", "w") as f:
             f.write(
@@ -249,7 +244,7 @@ node_modules/
 export default defineConfig({
   defaultCommandTimeout: 10000,
   e2e: {
-  
+    supportFile: false,
   },
 })
 """
@@ -284,9 +279,31 @@ export default defineConfig({
 
 module.exports = defineConfig({
   defaultCommandTimeout: 10000,
+  e2e: {
+    supportFile: false,
+  },
 })
 """
             )
+
+        logger.info("Setting up cypress environment.")
+        # create a package.json file
+        with open(test_dir / "package.json", "w") as f:
+            f.write("""{
+  "name": "agent-tests",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "cypress": "latest",
+    "uuid": "latest",
+    "typescript": "latest"
+  }
+}""")
 
     logger.info("Installing npm dependencies.")
     subprocess.run(

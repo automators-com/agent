@@ -76,14 +76,21 @@ def run_playwright(test_dir: Path) -> str:
     return output
 
 
-def run_cypress(test_dir: Path) -> str:
+def run_cypress(test_dir: Path, config_file_name: str) -> str:
     # Create a StringIO buffer to capture the output
     buffer = io.StringIO()
-    cmd = ["npx", "cypress", "run", "--headless"]
+    cmd = [
+        "npx",
+        "cypress",
+        "run",
+        "--headless",
+        "--config-file",
+        str(test_dir / config_file_name),
+    ]
 
     # Run the command using subprocess and capture the output
     process = subprocess.Popen(
-        cmd, cwd=test_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
     )
     stdout, stderr = process.communicate()
 

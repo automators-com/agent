@@ -127,6 +127,11 @@ def start(
             check_for_playwright_browsers(test_dir)
 
         if config["config"]["framework"] == "cypress":
+            # TODO: Add support for TypeScript
+            if config["config"]["language"].lower() == "typescript":
+                logger.error("Cypress with TypeScript, is not currently supported.")
+                raise typer.Exit()
+
             scaffold_cypress(test_dir, language=config["config"]["language"])
             check_for_cypress_installation(test_dir)
 
