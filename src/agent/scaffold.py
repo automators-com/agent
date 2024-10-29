@@ -185,6 +185,15 @@ def scaffold_cypress(test_dir: Path, language: str, clean=True) -> None:
 
     # create the test directory
     test_dir.mkdir(exist_ok=True)
+    # create e2e folder
+    e2e_folder = test_dir / "e2e"
+    e2e_folder.mkdir(exist_ok=True)
+    # create a support folder
+    support_folder = test_dir / "support"
+    support_folder.mkdir(exist_ok=True)
+    # create a fixtures folder
+    fixtures_folder = test_dir / "fixtures"
+    fixtures_folder.mkdir(exist_ok=True)
 
     # nothing to do for python
     if language == "python":
@@ -224,6 +233,14 @@ node_modules/
         )
 
     if language == "typescript":
+        logger.info("Adding a support/commands.ts file.")
+        with open(support_folder / "commands.ts", "w") as f:
+            f.write("""""")
+
+        logger.info("Adding a support/e2e.ts file.")
+        with open(support_folder / "e2e.ts", "w") as f:
+            f.write("""import './commands'""")
+
         logger.info("Adding a cypress.config.ts file.")
         with open(test_dir / "cypress.config.ts", "w") as f:
             f.write(
@@ -253,6 +270,13 @@ export default defineConfig({
             )
 
     if language == "javascript":
+        logger.info("Adding a support/commands.js file.")
+        with open(support_folder / "commands.js", "w") as f:
+            f.write("""""")
+
+        with open(support_folder / "e2e.js", "w") as f:
+            f.write("""import './commands'""")
+
         logger.info("Adding a cypress.config.js file.")
         with open(test_dir / "cypress.config.js", "w") as f:
             f.write(

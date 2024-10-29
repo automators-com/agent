@@ -15,10 +15,13 @@ def test_playwright_scaffolding(language: str):
 
     files_in_test_dir = list(test_dir.glob("*"))
 
+    # check for the node_modules folder
+    node_modules = test_dir / "node_modules"
+
     if language != "python":
         # check for the node_modules folder
-        node_modules = test_dir / "node_modules"
         assert node_modules.exists()
+
         # check for relevant files
         assert any("package.json" in str(f) for f in files_in_test_dir)
         assert any(".gitignore" in str(f) for f in files_in_test_dir)
