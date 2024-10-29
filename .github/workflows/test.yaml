@@ -33,10 +33,6 @@ jobs:
         run: |
           uv sync --all-extras --dev
 
-      - name: Install pytest as a tool
-        run: |
-          uv tool install pytest
-
       - name: Run the tests
         run: |
-          pytest
+          uv run pytest
