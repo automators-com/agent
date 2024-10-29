@@ -1,5 +1,5 @@
 [config]
-language = "typescript"
+language = "javascript"
 framework = "cypress"
 headless = true
 clean = true

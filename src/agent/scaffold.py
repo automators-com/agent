@@ -216,7 +216,13 @@ node_modules/
 
         logger.info("Adding a support/e2e.ts file.")
         with open(support_folder / "e2e.ts", "w") as f:
-            f.write("""import './commands'""")
+            f.write("""import './commands'
+
+Cypress.on('uncaught:exception', (err, runnable) => {
+  // returning false here prevents Cypress from
+  // failing the test
+  return false
+})""")
 
         # create a package.json file
         with open(test_dir / "package.json", "w") as f:
@@ -244,7 +250,7 @@ node_modules/
 export default defineConfig({
   defaultCommandTimeout: 10000,
   e2e: {
-    supportFile: false,
+    supportFile: "cypress/support/e2e.ts",
   },
 })
 """
@@ -270,7 +276,13 @@ export default defineConfig({
             f.write("""""")
 
         with open(support_folder / "e2e.js", "w") as f:
-            f.write("""import './commands'""")
+            f.write("""import './commands'
+
+Cypress.on('uncaught:exception', (err, runnable) => {
+  // returning false here prevents Cypress from
+  // failing the test
+  return false
+})""")
 
         logger.info("Adding a cypress.config.js file.")
         with open(test_dir / "cypress.config.js", "w") as f:
@@ -280,7 +292,7 @@ export default defineConfig({
 module.exports = defineConfig({
   defaultCommandTimeout: 10000,
   e2e: {
-    supportFile: false,
+    supportFile: "cypress/support/e2e.js",
   },
 })
 """
