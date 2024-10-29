@@ -4,13 +4,15 @@ from typing_extensions import Annotated
 from rich.console import Console
 from agent.completions import agent
 from agent.logging import logger
-from agent.config import TEST_DIR, read_config
-from agent.runtime import (
+from agent.config import get_test_dir, read_config
+from agent.scaffold import (
+    check_for_cypress_installation,
     check_for_node,
     check_for_npm,
     check_for_playwright,
     check_for_playwright_browsers,
-    setup_playwright_env,
+    scaffold_playwright,
+    scaffold_cypress,
 )
 
 err_console = Console(stderr=True)
@@ -27,7 +29,7 @@ def start(
     clean: Annotated[
         bool,
         typer.Option(
-            help="Delete files from the 'tests' directory before starting the agent."
+            help="Delete files from the relevant test output directory before starting the agent."
         ),
     ] = False,
     debug: Annotated[
@@ -64,7 +66,7 @@ def start(
         config["config"]["clean"] = clean
     if language != "python":
         config["config"]["language"] = language
-    if framework == "playwright":
+    if framework != "playwright":
         config["config"]["framework"] = framework
 
     # perform actions based on config
@@ -83,6 +85,7 @@ def start(
     # set agent language and framework as env vars
     os.environ["AGENT_LANGUAGE"] = config["config"]["language"]
     os.environ["AGENT_FRAMEWORK"] = config["config"]["framework"]
+    test_dir = get_test_dir()
 
     # raise an error if required config is missing
     for item in ["url", "prompt"]:
@@ -112,12 +115,25 @@ def start(
 
     # clean out the test directory
     if str(config["config"]["clean"]).lower() == "true":
-        logger.info(f"Deleting files in the {TEST_DIR} directory")
-        os.popen(f"rm -rf {TEST_DIR}/*").read()
+        logger.info(f"Deleting files in the {test_dir} directory")
+        os.popen(f"rm -rf {test_dir}/*").read()
 
         if config["config"]["framework"] == "playwright":
-            setup_playwright_env(TEST_DIR, language=config["config"]["language"])
-            check_for_playwright_browsers(TEST_DIR)
+            scaffold_playwright(
+                test_dir,
+                language=config["config"]["language"],
+                clean=config["config"]["clean"],
+            )
+            check_for_playwright_browsers(test_dir)
+
+        if config["config"]["framework"] == "cypress":
+            # TODO: Add support for TypeScript
+            if config["config"]["language"].lower() == "typescript":
+                logger.error("Cypress with TypeScript, is not currently supported.")
+                raise typer.Exit()
+
+            scaffold_cypress(test_dir, language=config["config"]["language"])
+            check_for_cypress_installation(test_dir)
 
     # call the agent
     agent(

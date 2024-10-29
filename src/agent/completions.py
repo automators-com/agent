@@ -6,7 +6,7 @@ import agent.tools as tools
 from agent.logging import logger
 from agent.rich import print_in_panel, print_in_question_panel
 from agent.utils import check_for_screenshots
-from agent.config import SUPPORTED_LANGUAGES
+from agent.config import SUPPORTED_LANGUAGES, get_test_dir
 
 
 def language_prompt(language: str):
@@ -30,14 +30,12 @@ def framework_prompt(framework: str, language: str = "python"):
         
         ```
         """
-    elif framework == "playwright" and language == "typescript":
+    elif framework == "playwright":
         return """
         Tests should be written using playwright. Use page.locator where possible - use classnames, ids, placeholders, visible text or even labels to find elements. Avoid using deprecated methods. Avoid imports from any external libraries unless the user specifies it.
 
         The structure of each test should be as follows:
-
-        ```typescript
-        // example.spec.ts
+        ```
         import { test, expect } from '@playwright/test';
 
         test('has title', async ({ page }) => {
@@ -48,31 +46,31 @@ def framework_prompt(framework: str, language: str = "python"):
         });
         ```
         """
-
-    elif framework == "playwright" and language == "javascript":
+    elif framework == "cypress":
         return """
-        Tests should be written using playwright. Use page.locator where possible - use classnames, ids, placeholders, visible text or even labels to find elements. Avoid using deprecated methods. Avoid imports from any external libraries unless the user specifies it.
+        Tests should be written using cypress. Avoid using deprecated methods. Avoid imports from any external libraries unless the user specifies it.
 
         The structure of each test should be as follows:
+        ```
+        describe('My First Test', () => {
+            it('Gets, types and asserts', () => {
+                cy.visit('https://example.cypress.io')
 
-        ```typescript
-        // example.spec.js
-        import { test, expect } from '@playwright/test';
+                cy.contains('type').click()
 
-        test('has title', async ({ page }) => {
-            await page.goto('https://playwright.dev/');
+                // Should be on a new URL which
+                // includes '/commands/actions'
+                cy.url().should('include', '/commands/actions')
 
-            // Expect a title "to contain" a substring.
-            await expect(page).toHaveTitle(/Playwright/);
-        });
+                // Get an input, type into it
+                cy.get('.action-email').type('fake@email.com')
+
+                //  Verify that the value has been updated
+                cy.get('.action-email').should('have.value', 'fake@email.com')
+            })
+        })
         ```
         """
-    elif framework == "cypress" and language == "javascript":
-        raise typer.Exit("Cypress with javascript is not supported.")
-    elif framework == "playwright" and language == "typescript":
-        raise typer.Exit("Playwright with typescript is not supported.")
-    elif framework == "cypress" and language == "python":
-        raise typer.Exit("Cypress with python is not supported.")
     else:
         return ""
 
@@ -154,8 +152,8 @@ def agent(
     messages.append(
         {
             "role": "assistant",
-            "content": """If tests are not passing, consider using the tools to debug the issue. 
-            - You can overwrite any code in the 'tests' folder using the relevant tools. Use links found on the webpage to determine if navigation to other pages are required. 
+            "content": f"""If tests are not passing, consider using the tools to debug the issue. 
+            - You can overwrite any code in the {get_test_dir()} folder using the relevant tools. Use links found on the webpage to determine if navigation to other pages are required. 
             - You can use the extract_webpage_content tool in place of navigation. 
             - Do not make assumptions about the app structure or redirects unless there are clear links to support it. If you need more context, add code to save screenshots to the 'test-results' folder and the run the tests. We will send you the screenshots.
             - If you need input from the user, always use the get_user_input tool.""",
