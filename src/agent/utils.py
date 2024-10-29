@@ -5,6 +5,7 @@ import pytest
 import pytest_playwright
 from pathlib import Path
 from contextlib import redirect_stdout
+from agent.config import get_test_dir
 from agent.logging import logger
 from agent.video import extract_frames
 import subprocess
@@ -113,35 +114,35 @@ def encode_image(image_path):
 
 def check_for_screenshots():
     screenshots = []
-    # check for a trace.zip file and extract it if it exists
-    test_results = Path("test-results")
+    test_dir = get_test_dir()
 
-    if test_results.exists():
-        # unzip any trace.zip folders
-        trace_files = list(test_results.glob("**/*.zip"))
-        logger.info(f"Found {len(trace_files)} trace file(s).")
-        if trace_files:
-            for trace_file in trace_files:
-                # extract the contents of the zip file
-                subprocess.run(["unzip", str(trace_file), "-d", str(trace_file.parent)])
+    if not test_dir:
+        return screenshots
 
-        # check for video files
-        video_files = list(test_results.glob("**/*.webm"))
-        logger.info(f"Found {len(video_files)} video(s).")
+    # unzip any trace.zip folders
+    trace_files = list(test_dir.glob("**/*.zip"))
+    logger.info(f"Found {len(trace_files)} trace file(s).")
+    if trace_files:
+        for trace_file in trace_files:
+            # extract the contents of the zip file
+            subprocess.run(["unzip", str(trace_file), "-d", str(trace_file.parent)])
 
-        if video_files:
-            for video_file in video_files:
-                # extract frames from the video using moviepy
-                extract_frames(video_file)
+    # check for video files
+    video_files = list(test_dir.glob("**/*.webm"))
+    logger.info(f"Found {len(video_files)} video(s).")
+    if video_files:
+        for video_file in video_files:
+            # extract frames from the video using moviepy
+            extract_frames(video_file)
 
-        logger.info("Test results folder found. Checking for screenshots.")
-        # find all image files in any subdirectories
-        image_files = list(test_results.glob("**/*.png"))
-        logger.info(f"Found {len(image_files)} screenshot(s).")
-        if image_files:
-            for image_file in image_files:
-                # convert to base64 and display in a panel
-                image_data = encode_image(image_file)
-                screenshots.append(image_data)
+    logger.info("Checking for screenshots.")
+    # find all image files in any subdirectories
+    image_files = list(test_dir.glob("**/*.png"))
+    logger.info(f"Found {len(image_files)} screenshot(s).")
+    if image_files:
+        for image_file in image_files:
+            # convert to base64 and display in a panel
+            image_data = encode_image(image_file)
+            screenshots.append(image_data)
 
     return screenshots
