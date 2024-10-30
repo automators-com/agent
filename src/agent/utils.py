@@ -125,7 +125,13 @@ def check_for_screenshots():
     if trace_files:
         for trace_file in trace_files:
             # extract the contents of the zip file
-            subprocess.run(["unzip", str(trace_file), "-d", str(trace_file.parent)])
+            try:
+                subprocess.run(
+                    ["unzip", str(trace_file), "-d", str(trace_file.parent)],
+                    shell=True,
+                )
+            except Exception as e:
+                logger.error(f"Error extracting trace file: {e}")
 
     # check for video files
     video_files = list(test_dir.glob("**/*.webm"))
