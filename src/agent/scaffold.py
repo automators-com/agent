@@ -18,7 +18,7 @@ def check_for_node():
     """Checks if node.js in installed on the system"""
     try:
         logger.info("Checking that Node.js is installed.")
-        version = subprocess.check_output(["node", "-v"])
+        version = subprocess.check_output(["node", "--version"], shell=True)
         if version:
             logger.info(f"found node version: {version.decode().strip()}")
 
@@ -34,7 +34,7 @@ def check_for_npm():
     """Checks if npm is installed on the system"""
     try:
         logger.info("Checking that npm is installed.")
-        version = subprocess.check_output(["npm", "-v"])
+        version = subprocess.check_output(["npm", "--version"], shell=True)
         if version:
             logger.info(f"found npm version: {version.decode().strip()}")
 
@@ -49,7 +49,7 @@ def check_for_playwright():
     """Checks if playwright is installed on the system"""
     try:
         logger.info("Checking that Playwright is installed.")
-        version = subprocess.check_output(["playwright", "--version"])
+        version = subprocess.check_output(["playwright", "--version"], shell=True)
         if version:
             logger.info(f"found playwright version: {version.decode().strip()}")
 
@@ -64,7 +64,7 @@ def check_for_cypress():
     """Checks if cypress is installed on the system"""
     try:
         logger.info("Checking that Cypress is installed.")
-        version = subprocess.check_output(["cypress", "--version"])
+        version = subprocess.check_output(["cypress", "--version"], shell=True)
         if version:
             logger.info(f"found cypress version: {version.decode().strip()}")
 
@@ -123,12 +123,14 @@ def scaffold_playwright(
     subprocess.run(
         cmd,
         cwd=test_dir,
+        shell=True,
     )
 
     logger.info("Adding dev dependencies.")
     subprocess.run(
         ["npm", "install", "uuid", "--save-dev"],
         cwd=test_dir,
+        shell=True,
     )
 
 
@@ -142,6 +144,7 @@ def check_for_playwright_browsers(
             ["playwright", "install", "chromium"],
             check=True,
             cwd=test_dir,
+            shell=True,
         )
     except subprocess.CalledProcessError:
         return False
@@ -158,6 +161,7 @@ def check_for_cypress_installation(test_dir: Path):
             ["npx", "--yes", "cypress", "install"],
             check=True,
             cwd=test_dir,
+            shell=True,
         )
     except subprocess.CalledProcessError:
         return False
@@ -321,4 +325,5 @@ module.exports = defineConfig({
     subprocess.run(
         ["npm", "install"],
         cwd=test_dir,
+        shell=True,
     )
