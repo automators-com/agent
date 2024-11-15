@@ -47,13 +47,16 @@ def calculate_rmse(image1_path, image2_path):
         return rmse
 
 
-def find_unique_images(directory, threshold=5.0):
+def keep_unique_images(directory, threshold=5.0):
     """
     Find and keep only unique images in a directory based on pixel content similarity.
     Delete images that are almost identical to others.
     """
     unique_images = []
-    image_paths = list(Path(directory).glob("*.png"))
+    image_paths = list(Path(directory).glob("**/*.png"))
+    image_paths.extend(list(Path(directory).glob("**/*.jpeg")))
+    image_paths.extend(list(Path(directory).glob("**/*.jpg")))
+    image_paths.extend(list(Path(directory).glob("**/*.webp")))
 
     # Loop through all PNG files and compare them pairwise
     while image_paths:
@@ -99,4 +102,4 @@ def extract_frames(video_file: Path, frames_per_second: int = 1):
         # save the frame with the current duration
         video_clip.save_frame(frame_filename, current_duration)
 
-    find_unique_images(video_file.parent)
+    keep_unique_images(video_file.parent)

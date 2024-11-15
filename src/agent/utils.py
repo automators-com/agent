@@ -7,7 +7,7 @@ from pathlib import Path
 from contextlib import redirect_stdout
 from agent.config import get_test_dir
 from agent.logging import logger
-from agent.video import extract_frames
+from agent.video import extract_frames, keep_unique_images
 import subprocess
 
 
@@ -133,6 +133,8 @@ def check_for_screenshots():
                     f"unzip {str(trace_file)} -d {str(trace_file.parent)}",
                     shell=True,
                 )
+                # find all image files in any subdirectories
+                keep_unique_images(test_dir)
             except Exception as e:
                 logger.error(f"Error extracting trace file: {e}")
 
@@ -145,8 +147,12 @@ def check_for_screenshots():
             extract_frames(video_file)
 
     logger.info("Checking for screenshots.")
-    # find all image files in any subdirectories
+
     image_files = list(test_dir.glob("**/*.png"))
+
+    for format in ["jpeg", "jpg", "webp"]:
+        image_files.extend(list(test_dir.glob(f"**/*.{format}")))
+
     logger.info(f"Found {len(image_files)} screenshot(s).")
     if image_files:
         for image_file in image_files:
