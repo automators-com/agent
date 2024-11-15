@@ -56,8 +56,11 @@ def run_pytest_playwright(test_dir: Path) -> str:
 
 
 def run_playwright(test_dir: Path) -> str:
+    # ensure test_dir exists
+    test_dir.mkdir(exist_ok=True)
     # Create a StringIO buffer to capture the output
     buffer = io.StringIO()
+
     cmd = ["npx", "playwright", "test", "--trace=on", "--reporter=line"]
 
     # Run the command using subprocess and capture the output
@@ -127,7 +130,7 @@ def check_for_screenshots():
             # extract the contents of the zip file
             try:
                 subprocess.run(
-                    ["unzip", str(trace_file), "-d", str(trace_file.parent)],
+                    f"unzip {str(trace_file)} -d {str(trace_file.parent)}",
                     shell=True,
                 )
             except Exception as e:
