@@ -7,7 +7,7 @@ from pathlib import Path
 from contextlib import redirect_stdout
 from agent.config import get_test_dir
 from agent.logging import logger
-from agent.video import extract_frames
+from agent.video import extract_frames, keep_unique_images
 import subprocess
 
 
@@ -56,8 +56,11 @@ def run_pytest_playwright(test_dir: Path) -> str:
 
 
 def run_playwright(test_dir: Path) -> str:
+    # ensure test_dir exists
+    test_dir.mkdir(exist_ok=True)
     # Create a StringIO buffer to capture the output
     buffer = io.StringIO()
+
     cmd = ["npx", "playwright", "test", "--trace=on", "--reporter=line"]
 
     # Run the command using subprocess and capture the output
@@ -127,9 +130,11 @@ def check_for_screenshots():
             # extract the contents of the zip file
             try:
                 subprocess.run(
-                    ["unzip", str(trace_file), "-d", str(trace_file.parent)],
+                    f"unzip {str(trace_file)} -d {str(trace_file.parent)}",
                     shell=True,
                 )
+                # find all image files in any subdirectories
+                keep_unique_images(test_dir)
             except Exception as e:
                 logger.error(f"Error extracting trace file: {e}")
 
@@ -142,8 +147,12 @@ def check_for_screenshots():
             extract_frames(video_file)
 
     logger.info("Checking for screenshots.")
-    # find all image files in any subdirectories
+
     image_files = list(test_dir.glob("**/*.png"))
+
+    for format in ["jpeg", "jpg", "webp"]:
+        image_files.extend(list(test_dir.glob(f"**/*.{format}")))
+
     logger.info(f"Found {len(image_files)} screenshot(s).")
     if image_files:
         for image_file in image_files:

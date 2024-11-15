@@ -116,6 +116,7 @@ def write_code_to_file(**kwargs: TWriteCodeToFile):
         out_dir.mkdir(exist_ok=True)
     elif framework == "playwright":
         # ensure the tests directory exists
+        out_dir = out_dir / "tests"
         out_dir.mkdir(exist_ok=True)
 
     logger.info(f"Writing code to file {file_name}")
@@ -141,11 +142,11 @@ def run_tests():
         return output
 
     elif language == "typescript" and framework == "playwright":
-        output = run_playwright(test_dir)
+        output = run_playwright(test_dir / "tests")
         print_in_panel(output, "Test Output")
         return output
     elif language == "javascript" and framework == "playwright":
-        output = run_playwright(test_dir)
+        output = run_playwright(test_dir / "tests")
         print_in_panel(output, "Test Output")
         return output
     elif language == "typescript" and framework == "cypress":

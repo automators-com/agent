@@ -18,9 +18,9 @@ def check_for_node():
     """Checks if node.js in installed on the system"""
     try:
         logger.info("Checking that Node.js is installed.")
-        version = subprocess.check_output(["node", "--version"], shell=True)
+        version = subprocess.check_output("node --version", shell=True)
         if version:
-            logger.info(f"found node version: {version.decode().strip()}")
+            logger.info(f"Found node version: {version.decode().strip()}")
 
         return version.decode().strip()
     except Exception as e:
@@ -34,9 +34,9 @@ def check_for_npm():
     """Checks if npm is installed on the system"""
     try:
         logger.info("Checking that npm is installed.")
-        version = subprocess.check_output(["npm", "--version"], shell=True)
+        version = subprocess.check_output("npm --version", shell=True)
         if version:
-            logger.info(f"found npm version: {version.decode().strip()}")
+            logger.info(f"Found npm version: {version.decode().strip()}")
 
         return version.decode().strip()
     except subprocess.CalledProcessError:
@@ -49,9 +49,9 @@ def check_for_playwright():
     """Checks if playwright is installed on the system"""
     try:
         logger.info("Checking that Playwright is installed.")
-        version = subprocess.check_output(["playwright", "--version"], shell=True)
+        version = subprocess.check_output("npx playwright --version", shell=True)
         if version:
-            logger.info(f"found playwright version: {version.decode().strip()}")
+            logger.info(f"Found playwright version: {version.decode().strip()}")
 
         return version.decode().strip()
     except subprocess.CalledProcessError:
@@ -64,9 +64,9 @@ def check_for_cypress():
     """Checks if cypress is installed on the system"""
     try:
         logger.info("Checking that Cypress is installed.")
-        version = subprocess.check_output(["cypress", "--version"], shell=True)
+        version = subprocess.check_output("cypress --version", shell=True)
         if version:
-            logger.info(f"found cypress version: {version.decode().strip()}")
+            logger.info(f"Found cypress version: {version.decode().strip()}")
 
         return version.decode().strip()
     except subprocess.CalledProcessError:
@@ -106,20 +106,8 @@ def scaffold_playwright(
     # run the playwright init command
     logger.info("Running the playwright install command.")
     lang = "Typescript" if language == "typescript" else "js"
-    cmd = [
-        "npm",
-        "init",
-        "playwright",
-        "--",
-        "--yes",
-        "--quiet",
-        "--install-deps",
-        "--no-examples",
-        "--browser=chromium",
-        f"--lang={lang}",
-        ".",  # scaffold in the test_dir based on cwd set below
-    ]
-    print(cmd)
+    cmd = f"npm init playwright@latest -- --yes --quiet --install-deps --no-examples --browser=chromium --lang={lang} ."
+
     subprocess.run(
         cmd,
         cwd=test_dir,
@@ -128,7 +116,7 @@ def scaffold_playwright(
 
     logger.info("Adding dev dependencies.")
     subprocess.run(
-        ["npm", "install", "uuid", "--save-dev"],
+        "npm install uuid --save-dev",
         cwd=test_dir,
         shell=True,
     )
@@ -141,7 +129,7 @@ def check_for_playwright_browsers(
     try:
         logger.info("Checking that Playwright browsers are installed.")
         subprocess.run(
-            ["playwright", "install", "chromium"],
+            "npx playwright install chromium",
             check=True,
             cwd=test_dir,
             shell=True,
@@ -158,7 +146,7 @@ def check_for_cypress_installation(test_dir: Path):
     try:
         logger.info("Checking that Cypress is installed.")
         subprocess.run(
-            ["npx", "--yes", "cypress", "install"],
+            "npx --yes cypress install",
             check=True,
             cwd=test_dir,
             shell=True,
@@ -323,7 +311,7 @@ module.exports = defineConfig({
 
     logger.info("Installing npm dependencies.")
     subprocess.run(
-        ["npm", "install"],
+        "npm install",
         cwd=test_dir,
         shell=True,
     )
