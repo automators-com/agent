@@ -177,6 +177,41 @@ def get_user_input(**kwargs: TGetUserInput) -> str:
     return response
 
 
+class TListFiles(TypedDict):
+    dir: str
+
+
+def list_files_in_dir(**kwargs: TListFiles) -> str:
+    dir = kwargs.get("dir", ".")
+
+    if not dir:
+        return "No directory provided to list files in."
+
+    # check if the directory exists
+    if not os.path.exists(dir):
+        return f"Directory {dir} does not exist."
+
+    files = os.listdir(dir)
+    return files
+
+
+class TReadFileContents(TypedDict):
+    path: str
+
+
+def read_file_contents(**kwargs: TReadFileContents) -> str:
+    path = kwargs.get("path", None)
+
+    if not path:
+        return "No path provided to read file contents from."
+
+    if not os.path.exists(path):
+        return f"File {path} does not exist."
+
+    with open(path, "r") as f:
+        return f.read()
+
+
 tools = [
     {
         "type": "function",
@@ -239,6 +274,42 @@ tools = [
                     },
                 },
                 "required": ["question"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "list_files_in_dir",
+            "description": "Lists the files in a directory.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "dir": {
+                        "type": "string",
+                        "description": "The directory to list files in.",
+                    },
+                },
+                "required": ["dir"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "read_file_contents",
+            "description": "Reads the contents of a file.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "The path of the file to read contents from.",
+                    },
+                },
+                "required": ["path"],
                 "additionalProperties": False,
             },
         },
